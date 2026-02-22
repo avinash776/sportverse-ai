@@ -53,11 +53,12 @@ app.use(helmet({
 const allowedOrigins = [
   'http://localhost:5173',                  // local dev
   'https://sportverse-ai.vercel.app',       // Vercel frontend
+  'https://sportverseai.app',               // custom domain
+  'https://www.sportverseai.app',           // www custom domain
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps, curl)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
@@ -69,6 +70,9 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Preflight support
+app.options('*', cors());
 
 // Rate limiting - prevent abuse
 const limiter = rateLimit({
