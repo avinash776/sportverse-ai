@@ -87,6 +87,11 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/dm', dmRoutes);
 app.use('/api/game-requests', gameRequestRoutes);
 
+// Root health check (Render hits / by default)
+app.get('/', (req, res) => {
+  res.status(200).send('SportVerse AI Backend is running');
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ 
