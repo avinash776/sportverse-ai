@@ -63,8 +63,10 @@ def create_app():
     return app
 
 
+# Module-level app instance for gunicorn (gunicorn app:app)
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
     port = int(os.environ.get('PORT', 8000))
     print(f"\n🤖 SportVerse AI Microservice running on http://localhost:{port}")
     print(f"📡 API available at http://localhost:{port}/api")
