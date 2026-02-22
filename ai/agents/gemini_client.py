@@ -9,10 +9,9 @@
 import os, json, re, time
 from google import genai
 
-GEMINI_API_KEY = os.environ.get(
-    "GEMINI_API_KEY",
-    "AIzaSyBft3DyGUADPx3Gl_ZbuaL83ZyKxsW63dE",
-)
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+if not GEMINI_API_KEY:
+    print("WARNING: GEMINI_API_KEY not set in environment variables!")
 
 # Initialise the client once at module level
 _client = genai.Client(api_key=GEMINI_API_KEY)

@@ -2,12 +2,14 @@
 node_modules/
 package-lock.json
 
-# Environment variables (SENSITIVE)
+# Environment variables (SENSITIVE - never commit these!)
 .env
 .env.*
 .env.local
 .env.production
 .env.development
+**/.env
+**/.env.*
 
 # Database files
 *.db

@@ -8,6 +8,9 @@
 # ==================================================
 
 import os
+from dotenv import load_dotenv
+load_dotenv()  # Load .env file before anything else
+
 from flask import Flask, jsonify
 from flask_cors import CORS
 
@@ -36,10 +39,7 @@ def create_app():
     # Health check endpoint
     @app.route('/api/health', methods=['GET'])
     def health_check():
-        gemini_key = os.environ.get(
-            'GEMINI_API_KEY',
-            'AIzaSyBft3DyGUADPx3Gl_ZbuaL83ZyKxsW63dE',
-        )
+        gemini_key = os.environ.get('GEMINI_API_KEY', '')
         return jsonify({
             'status': 'ok',
             'service': 'SportVerse AI – Python Microservice',
