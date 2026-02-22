@@ -43,7 +43,11 @@ const server = http.createServer(app);
 // ==== Middleware Setup ====
 
 // Security headers
-app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+  crossOriginEmbedderPolicy: false
+}));
 
 // CORS - Allow frontend to communicate with backend
 const allowedOrigins = [
