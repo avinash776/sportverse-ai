@@ -1,0 +1,9 @@
+flask==3.0.2
+flask-cors==4.0.0
+mediapipe==0.10.9
+opencv-python-headless==4.9.0.80
+numpy==1.26.4
+Pillow==10.2.0
+scikit-learn==1.4.0
+gunicorn==21.2.0
+google-genai>=1.0.0

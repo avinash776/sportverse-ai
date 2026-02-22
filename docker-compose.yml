@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # React Frontend (Vite dev server)
+  # ============================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:5000
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/src:/app/src
+
+  # ============================================
+  # Node.js Backend (Express + SQLite)
+  # ============================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - JWT_SECRET=sportverse-super-secret-key-2024
+      - AI_SERVICE_URL=http://ai:8000
+      - CLIENT_URL=http://localhost:5173
+      - SESSION_SECRET=sportverse-session-secret
+    depends_on:
+      - ai
+    volumes:
+      - backend-data:/app/data
+      - backend-uploads:/app/uploads
+
+  # ============================================
+  # Python AI Microservice (Flask + MediaPipe)
+  # ============================================
+  ai:
+    build:
+      context: ./ai
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+
+volumes:
+  backend-data:
+  backend-uploads:

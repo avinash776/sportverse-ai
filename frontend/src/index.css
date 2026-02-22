@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom global styles */
+@layer base {
+  body {
+    @apply font-sans text-gray-800 bg-sport-pattern;
+    background-color: #f8fafc;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 shadow-lg shadow-primary-200 hover:shadow-xl hover:shadow-primary-300 active:scale-95;
+  }
+  
+  .btn-secondary {
+    @apply bg-white hover:bg-gray-50 text-gray-700 font-semibold py-2.5 px-6 rounded-xl border-2 border-gray-200 hover:border-primary-300 transition-all duration-200 active:scale-95;
+  }
+  
+  .btn-sport {
+    @apply bg-gradient-to-r from-sport-green to-sport-blue text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95;
+  }
+
+  .card {
+    @apply bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100/80 hover:shadow-md transition-shadow duration-300;
+  }
+
+  .card-hover {
+    @apply bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100/80 hover:shadow-lg hover:border-primary-200 transition-all duration-300 hover:-translate-y-1;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all duration-200 bg-white;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-600 via-sport-blue to-sport-green bg-clip-text text-transparent;
+  }
+
+  .glass {
+    @apply bg-white/80 backdrop-blur-lg border border-white/20;
+  }
+
+  /* Sport-themed page background for authenticated pages */
+  .sport-bg {
+    background-color: #f1f5f9;
+    background-image: 
+      radial-gradient(at 20% 10%, rgba(99, 102, 241, 0.06) 0px, transparent 50%),
+      radial-gradient(at 80% 20%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
+      radial-gradient(at 50% 80%, rgba(139, 92, 246, 0.04) 0px, transparent 50%),
+      radial-gradient(at 90% 90%, rgba(59, 130, 246, 0.04) 0px, transparent 50%);
+  }
+
+  /* Sport image cards for AI output */
+  .sport-image-card {
+    @apply relative overflow-hidden rounded-xl border border-gray-100/80 shadow-sm;
+  }
+  .sport-image-card img {
+    @apply w-full h-40 object-cover transition-transform duration-300;
+  }
+  .sport-image-card:hover img {
+    @apply scale-105;
+  }
+  .sport-image-card .sport-image-overlay {
+    @apply absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full hover:bg-gray-400;
+}
+
+/* Animations */
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 3s ease infinite;
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Sport background decorations */
+.sport-decoration::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+  background-size: 30px 30px;
+  animation: float 20s linear infinite;
+  pointer-events: none;
+}
