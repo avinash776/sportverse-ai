@@ -5,6 +5,8 @@
 const express = require('express');
 const router = express.Router();
 const GameRequest = require('../models/GameRequest');
+const Tournament = require('../models/Tournament');
+const Event = require('../models/Event');
 const { authenticateToken } = require('../middleware/auth');
 
 // Create a game request
@@ -168,6 +170,92 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Cancel game request error:', error);
     res.status(500).json({ error: 'Failed to cancel request' });
+  }
+});
+
+// ---- Coach Tournaments & Events (public) ----
+
+// Get all upcoming tournaments (posted by coaches)
+router.get('/tournaments', async (req, res) => {
+  try {
+    const { sport } = req.query;
+    const filter = { status: { $in: ['upcoming', 'ongoing'] } };
+    if (sport) filter.sport = { $regex: sport, $options: 'i' };
+
+    const tournaments = await Tournament.find(filter)
+      .populate('coach_id', 'name avatar role coach_verified sport')
+      .sort({ start_date: 1 })
+      .lean();
+
+    const result = tournaments.map(t => ({
+      ...t,
+      id: t._id,
+      type: 'tournament',
+      coach_name: t.coach_id?.name,
+      coach_avatar: t.coach_id?.avatar,
+      coach_verified: t.coach_id?.coach_verified || false,
+      is_professional: true,
+    }));
+
+    res.json({ tournaments: result });
+  } catch (error) {
+    console.error('Fetch public tournaments error:', error);
+    res.status(500).json({ error: 'Failed to fetch tournaments' });
+  }
+});
+
+// Get all upcoming events (posted by coaches)
+router.get('/events', async (req, res) => {
+  try {
+    const { sport } = req.query;
+    const filter = {};
+    if (sport) filter.sport = { $regex: sport, $options: 'i' };
+    // Only future events
+    filter.event_date = { $gte: new Date() };
+
+    const events = await Event.find(filter)
+      .populate('coach_id', 'name avatar role coach_verified sport')
+      .populate('participants', 'name avatar')
+      .sort({ event_date: 1 })
+      .lean();
+
+    const result = events.map(e => ({
+      ...e,
+      id: e._id,
+      type: 'event',
+      coach_name: e.coach_id?.name,
+      coach_avatar: e.coach_id?.avatar,
+      coach_verified: e.coach_id?.coach_verified || false,
+      is_professional: true,
+      spots_left: Math.max(0, (e.max_participants || 30) - (e.participants?.length || 0)),
+    }));
+
+    res.json({ events: result });
+  } catch (error) {
+    console.error('Fetch public events error:', error);
+    res.status(500).json({ error: 'Failed to fetch events' });
+  }
+});
+
+// Join a coach event from Find Players page
+router.post('/events/:eventId/join', authenticateToken, async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.eventId);
+    if (!event) return res.status(404).json({ error: 'Event not found' });
+
+    if (event.participants.some(id => id.toString() === req.user._id.toString())) {
+      return res.status(409).json({ error: 'Already registered' });
+    }
+    if (event.participants.length >= event.max_participants) {
+      return res.status(400).json({ error: 'Event is full' });
+    }
+
+    event.participants.push(req.user._id);
+    await event.save();
+    res.json({ message: 'Joined event successfully!' });
+  } catch (error) {
+    console.error('Join event error:', error);
+    res.status(500).json({ error: 'Failed to join event' });
   }
 });
 

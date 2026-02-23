@@ -16,7 +16,7 @@ import {
     UserMinus,
     UserPlus,
     Users,
-    X,
+    X
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -49,7 +49,9 @@ export default function FindPlayers() {
 
   const [requests, setRequests] = useState([]);
   const [myRequests, setMyRequests] = useState([]);
-  const [tab, setTab] = useState('browse'); // browse | my
+  const [tournaments, setTournaments] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [tab, setTab] = useState('browse'); // browse | my | pro
   const [showCreate, setShowCreate] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -70,7 +72,7 @@ export default function FindPlayers() {
     contact_info: '',
   });
 
-  useEffect(() => { fetchRequests(); fetchMyRequests(); }, [filterSport, filterLocation]);
+  useEffect(() => { fetchRequests(); fetchMyRequests(); fetchProEvents(); }, [filterSport, filterLocation]);
 
   const fetchRequests = async () => {
     try {
@@ -88,6 +90,26 @@ export default function FindPlayers() {
       const { data } = await api.get('/game-requests/my');
       setMyRequests(data.requests || []);
     } catch (err) { console.error(err); }
+  };
+
+  const fetchProEvents = async () => {
+    try {
+      const sportParam = filterSport ? `?sport=${filterSport}` : '';
+      const [tourRes, eventRes] = await Promise.all([
+        api.get(`/game-requests/tournaments${sportParam}`),
+        api.get(`/game-requests/events${sportParam}`),
+      ]);
+      setTournaments(tourRes.data.tournaments || []);
+      setEvents(eventRes.data.events || []);
+    } catch (err) { console.error(err); }
+  };
+
+  const handleJoinEvent = async (eventId) => {
+    try {
+      await api.post(`/game-requests/events/${eventId}/join`);
+      toast.success('Registered for event! 🎉');
+      fetchProEvents();
+    } catch (err) { toast.error(err.response?.data?.error || 'Failed to join event'); }
   };
 
   const handleCreate = async () => {
@@ -289,6 +311,7 @@ export default function FindPlayers() {
         <div className="flex gap-2 bg-gray-100/80 p-1.5 rounded-2xl flex-1">
           {[
             { id: 'browse', label: 'Browse Games', emoji: '🔍' },
+            { id: 'pro', label: 'Pro Events', emoji: '🏆' },
             { id: 'my', label: 'My Games', emoji: '🎯' },
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
@@ -420,6 +443,224 @@ export default function FindPlayers() {
               <button onClick={() => setShowCreate(true)} className="btn-primary text-sm mt-4 inline-flex items-center gap-1.5">
                 <Plus size={14} /> Post Game Request
               </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ============ PRO EVENTS TAB ============ */}
+      {tab === 'pro' && (
+        <div className="space-y-6">
+          {/* Info Banner */}
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+            <Shield size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-amber-800">Professional Coach Events</p>
+              <p className="text-xs text-amber-600 mt-0.5">Tournaments & events created by verified coaches. Join to train with professionals!</p>
+            </div>
+          </div>
+
+          {/* Sport Filter */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Filter size={16} className="text-gray-400" />
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {SPORTS.map(s => (
+                <button key={s.value} onClick={() => setFilterSport(s.value)}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                    filterSport === s.value
+                      ? 'bg-amber-500 text-white shadow-md'
+                      : 'bg-white text-gray-500 border border-gray-200 hover:border-amber-300'
+                  }`}>
+                  <span>{s.emoji}</span> {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tournaments Section */}
+          {tournaments.length > 0 && (
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-3">
+                <Trophy size={20} className="text-amber-500" /> Tournaments
+              </h3>
+              <div className="space-y-4">
+                {tournaments.map(t => (
+                  <motion.div key={t.id || t._id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
+                    className="card p-5 hover:shadow-md transition-all border-l-4 border-amber-400">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        {/* Title + Badges */}
+                        <div className="flex items-center gap-2 flex-wrap mb-2">
+                          <span className="text-2xl">{getSportEmoji(t.sport)}</span>
+                          <h3 className="font-bold text-gray-900 text-lg">{t.name}</h3>
+                          <span className="inline-flex items-center gap-1 text-[10px] bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 px-2.5 py-0.5 rounded-full font-bold border border-amber-200">
+                            <Award size={10} /> TOURNAMENT
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-[10px] bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 px-2.5 py-0.5 rounded-full font-bold border border-blue-200">
+                            <BadgeCheck size={10} /> Professional Coach
+                          </span>
+                        </div>
+
+                        {/* Info row */}
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
+                          <span className="flex items-center gap-1"><MapPin size={14} className="text-red-400" /> {t.location || 'TBA'}</span>
+                          <span className="flex items-center gap-1"><Calendar size={14} className="text-blue-400" /> {new Date(t.start_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                          {t.end_date && (
+                            <span className="flex items-center gap-1"><Calendar size={14} className="text-green-400" /> to {new Date(t.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                          )}
+                        </div>
+
+                        {/* Description */}
+                        {t.description && <p className="text-sm text-gray-600 mt-2 leading-relaxed">{t.description}</p>}
+
+                        {/* Coach info */}
+                        <div className="flex items-center gap-2 mt-3 pt-2 border-t border-gray-100">
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-[10px] font-bold border-2 border-white">
+                            {t.coach_avatar ? <img src={t.coach_avatar} alt="" className="w-full h-full rounded-full object-cover" /> : (t.coach_name?.[0]?.toUpperCase() || 'C')}
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-medium text-gray-700">{t.coach_name || 'Coach'}</span>
+                            {t.coach_verified && <BadgeCheck size={14} className="text-blue-500" />}
+                            <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-medium">Coach</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Teams Info */}
+                      <div className="flex-shrink-0 w-24 text-center">
+                        <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+                          <Trophy size={24} className="text-amber-600" />
+                        </div>
+                        {t.max_teams && (
+                          <p className="text-xs text-gray-500 mt-1 font-medium">
+                            {t.teams?.length || 0} / {t.max_teams} teams
+                          </p>
+                        )}
+                        <span className={`inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full font-bold capitalize ${
+                          t.status === 'upcoming' ? 'bg-green-100 text-green-700' : t.status === 'ongoing' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
+                        }`}>{t.status}</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Events Section */}
+          {events.length > 0 && (
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-3">
+                <Star size={20} className="text-purple-500" /> Coach Events
+              </h3>
+              <div className="space-y-4">
+                {events.map(ev => {
+                  const spotsLeft = ev.spots_left ?? Math.max(0, (ev.max_participants || 30) - (ev.participants?.length || 0));
+                  const isFull = spotsLeft <= 0;
+                  const alreadyJoined = ev.participants?.some(p => {
+                    const pId = p._id || p.id || p;
+                    return pId?.toString() === myId?.toString();
+                  });
+
+                  return (
+                    <motion.div key={ev.id || ev._id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
+                      className="card p-5 hover:shadow-md transition-all border-l-4 border-purple-400">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          {/* Title + Badges */}
+                          <div className="flex items-center gap-2 flex-wrap mb-2">
+                            <span className="text-2xl">{getSportEmoji(ev.sport)}</span>
+                            <h3 className="font-bold text-gray-900 text-lg">{ev.title}</h3>
+                            {ev.event_type && (
+                              <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold uppercase">{ev.event_type}</span>
+                            )}
+                            <span className="inline-flex items-center gap-1 text-[10px] bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 px-2.5 py-0.5 rounded-full font-bold border border-blue-200">
+                              <BadgeCheck size={10} /> Professional Coach
+                            </span>
+                            {alreadyJoined && <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full font-bold">REGISTERED</span>}
+                          </div>
+
+                          {/* Info row */}
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
+                            <span className="flex items-center gap-1"><MapPin size={14} className="text-red-400" /> {ev.location || 'TBA'}</span>
+                            <span className="flex items-center gap-1"><Calendar size={14} className="text-blue-400" /> {new Date(ev.event_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                            <span className="flex items-center gap-1"><Clock size={14} className="text-green-400" /> {new Date(ev.event_date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+
+                          {/* Description */}
+                          {ev.description && <p className="text-sm text-gray-600 mt-2 leading-relaxed">{ev.description}</p>}
+
+                          {/* Coach info */}
+                          <div className="flex items-center gap-2 mt-3 pt-2 border-t border-gray-100">
+                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center text-white text-[10px] font-bold border-2 border-white">
+                              {ev.coach_avatar ? <img src={ev.coach_avatar} alt="" className="w-full h-full rounded-full object-cover" /> : (ev.coach_name?.[0]?.toUpperCase() || 'C')}
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-medium text-gray-700">{ev.coach_name || 'Coach'}</span>
+                              {ev.coach_verified && <BadgeCheck size={14} className="text-blue-500" />}
+                              <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-medium">Coach</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Spots + Join */}
+                        <div className="flex-shrink-0 w-28 text-center">
+                          <div className="relative w-16 h-16 mx-auto">
+                            <svg className="w-16 h-16 -rotate-90">
+                              <circle cx="32" cy="32" r="28" fill="none" stroke="#e5e7eb" strokeWidth="4" />
+                              <circle cx="32" cy="32" r="28" fill="none" stroke={isFull ? '#ef4444' : '#8b5cf6'} strokeWidth="4"
+                                strokeDasharray={`${2 * Math.PI * 28}`} strokeDashoffset={`${2 * Math.PI * 28 * (1 - ((ev.participants?.length || 0) / (ev.max_participants || 30)))}`}
+                                strokeLinecap="round" className="transition-all duration-500" />
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                              <span className="text-lg font-bold text-gray-900">{ev.participants?.length || 0}</span>
+                              <span className="text-[9px] text-gray-400">/ {ev.max_participants || 30}</span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1 font-medium">
+                            {isFull ? <span className="text-red-500">Full</span> : `${spotsLeft} spot${spotsLeft !== 1 ? 's' : ''}`}
+                          </p>
+                          {!alreadyJoined && !isFull ? (
+                            <button onClick={() => handleJoinEvent(ev.id || ev._id)}
+                              className="mt-2 flex items-center justify-center gap-1 w-full text-xs font-semibold bg-purple-600 text-white py-1.5 px-3 rounded-xl hover:bg-purple-700 transition-colors">
+                              <UserPlus size={12} /> Join
+                            </button>
+                          ) : alreadyJoined ? (
+                            <span className="mt-2 inline-block text-[10px] text-green-600 font-bold">✅ Joined</span>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      {/* Participants avatars */}
+                      {ev.participants?.length > 0 && (
+                        <div className="flex items-center gap-1 mt-3 pt-3 border-t border-gray-100">
+                          <Users size={14} className="text-gray-400 mr-1" />
+                          {ev.participants?.slice(0, 6).map((p, i) => {
+                            const pName = p.name || 'User';
+                            return (
+                              <div key={p._id || i} className="w-7 h-7 -ml-1.5 first:ml-0 rounded-full bg-gradient-to-br from-purple-300 to-indigo-400 flex items-center justify-center text-white text-[10px] font-bold border-2 border-white" title={pName}>
+                                {p.avatar ? <img src={p.avatar} alt="" className="w-full h-full rounded-full object-cover" /> : pName[0]?.toUpperCase()}
+                              </div>
+                            );
+                          })}
+                          {(ev.participants?.length || 0) > 6 && <span className="text-xs text-gray-400 ml-1">+{ev.participants.length - 6} more</span>}
+                        </div>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Empty state */}
+          {tournaments.length === 0 && events.length === 0 && (
+            <div className="text-center py-16 card">
+              <div className="w-16 h-16 mx-auto rounded-full bg-amber-50 flex items-center justify-center mb-4">
+                <Trophy className="text-amber-300" size={32} />
+              </div>
+              <p className="text-gray-500 font-medium">No professional events yet</p>
+              <p className="text-gray-400 text-sm mt-1">Check back later for coach-hosted tournaments & events</p>
             </div>
           )}
         </div>

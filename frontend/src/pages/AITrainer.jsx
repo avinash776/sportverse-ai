@@ -7,7 +7,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import {
     Award, BookOpen, Brain, Calendar,
     ChevronDown, ChevronUp,
-    Dumbbell, Flame,
+    Dumbbell,
+    Flame,
     Loader2,
     Target, Trash2, TrendingUp, Trophy,
     Youtube
@@ -314,6 +315,67 @@ export default function AITrainer() {
               </div>
             )}
 
+            {/* Warmup & Cooldown */}
+            {selectedPlan.warmup_cooldown && (
+              <div className="card p-6">
+                <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Zap size={18} className="text-orange-500" /> Warmup & Cooldown
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Warmup */}
+                  {selectedPlan.warmup_cooldown.warmup?.length > 0 && (
+                    <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-4 border border-orange-100">
+                      <h4 className="font-bold text-orange-800 mb-3 flex items-center gap-2">
+                        <Flame size={16} className="text-orange-500" /> Warmup Routine
+                      </h4>
+                      <div className="space-y-2">
+                        {selectedPlan.warmup_cooldown.warmup.map((w, i) => {
+                          const ex = typeof w === 'string' ? { exercise: w } : w;
+                          return (
+                            <div key={i} className="flex items-start gap-2 p-2.5 bg-white/70 rounded-lg">
+                              <div className="w-6 h-6 rounded-full bg-orange-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <span className="text-white text-[10px] font-bold">{i + 1}</span>
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">{ex.exercise || ex.name}</p>
+                                {ex.duration && <span className="text-[10px] text-orange-600 font-medium">⏱️ {ex.duration}</span>}
+                                {ex.description && <p className="text-xs text-gray-600 mt-0.5">{ex.description}</p>}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  {/* Cooldown */}
+                  {selectedPlan.warmup_cooldown.cooldown?.length > 0 && (
+                    <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl p-4 border border-cyan-100">
+                      <h4 className="font-bold text-cyan-800 mb-3 flex items-center gap-2">
+                        <Heart size={16} className="text-cyan-500" /> Cooldown Routine
+                      </h4>
+                      <div className="space-y-2">
+                        {selectedPlan.warmup_cooldown.cooldown.map((c, i) => {
+                          const ex = typeof c === 'string' ? { exercise: c } : c;
+                          return (
+                            <div key={i} className="flex items-start gap-2 p-2.5 bg-white/70 rounded-lg">
+                              <div className="w-6 h-6 rounded-full bg-cyan-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <span className="text-white text-[10px] font-bold">{i + 1}</span>
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">{ex.exercise || ex.name}</p>
+                                {ex.duration && <span className="text-[10px] text-cyan-600 font-medium">⏱️ {ex.duration}</span>}
+                                {ex.description && <p className="text-xs text-gray-600 mt-0.5">{ex.description}</p>}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Nutrition Plan */}
             <div className="card p-6">
               <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">🥗 Nutrition & Recovery</h3>
@@ -427,23 +489,41 @@ export default function AITrainer() {
                 {/* Progress Tracking */}
                 {selectedPlan.progress_tracking && (
                   <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100">
-                    <h4 className="font-bold text-green-800 mb-2 flex items-center gap-2"><Trophy size={16} /> How to Track Progress</h4>
-                    {selectedPlan.progress_tracking.metrics && (
-                      <div className="mb-2">
-                        <p className="text-[10px] text-green-600 font-bold uppercase mb-1">Key Metrics</p>
-                        <p className="text-xs text-green-700">{typeof selectedPlan.progress_tracking.metrics === 'string' ? selectedPlan.progress_tracking.metrics : JSON.stringify(selectedPlan.progress_tracking.metrics)}</p>
+                    <h4 className="font-bold text-green-800 mb-3 flex items-center gap-2"><Trophy size={16} /> How to Track Progress</h4>
+                    {(selectedPlan.progress_tracking.metrics_to_track || selectedPlan.progress_tracking.metrics) && (
+                      <div className="mb-3">
+                        <p className="text-[10px] text-green-600 font-bold uppercase mb-1.5">Key Metrics</p>
+                        {Array.isArray(selectedPlan.progress_tracking.metrics_to_track || selectedPlan.progress_tracking.metrics) ? (
+                          <div className="flex flex-wrap gap-2">
+                            {(selectedPlan.progress_tracking.metrics_to_track || selectedPlan.progress_tracking.metrics).map((m, i) => (
+                              <span key={i} className="text-xs bg-white text-green-700 px-2.5 py-1 rounded-lg font-medium border border-green-200">{m}</span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-green-700">{selectedPlan.progress_tracking.metrics_to_track || selectedPlan.progress_tracking.metrics}</p>
+                        )}
                       </div>
                     )}
                     {selectedPlan.progress_tracking.check_in_schedule && (
-                      <div className="mb-2">
-                        <p className="text-[10px] text-green-600 font-bold uppercase mb-1">Check-In Schedule</p>
-                        <p className="text-xs text-green-700">{selectedPlan.progress_tracking.check_in_schedule}</p>
+                      <div className="mb-3">
+                        <p className="text-[10px] text-green-600 font-bold uppercase mb-1">📅 Check-In Schedule</p>
+                        <p className="text-xs text-green-700 bg-white/60 p-2 rounded-lg">{selectedPlan.progress_tracking.check_in_schedule}</p>
                       </div>
                     )}
                     {selectedPlan.progress_tracking.signs_of_improvement && (
                       <div>
-                        <p className="text-[10px] text-green-600 font-bold uppercase mb-1">Signs of Improvement</p>
-                        <p className="text-xs text-green-700">{typeof selectedPlan.progress_tracking.signs_of_improvement === 'string' ? selectedPlan.progress_tracking.signs_of_improvement : JSON.stringify(selectedPlan.progress_tracking.signs_of_improvement)}</p>
+                        <p className="text-[10px] text-green-600 font-bold uppercase mb-1.5">Signs of Improvement</p>
+                        {Array.isArray(selectedPlan.progress_tracking.signs_of_improvement) ? (
+                          <div className="space-y-1">
+                            {selectedPlan.progress_tracking.signs_of_improvement.map((s, i) => (
+                              <p key={i} className="text-xs text-green-700 flex items-start gap-1.5">
+                                <span className="flex-shrink-0">✅</span> <span>{s.replace(/^✅\s*/, '')}</span>
+                              </p>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-green-700">{selectedPlan.progress_tracking.signs_of_improvement}</p>
+                        )}
                       </div>
                     )}
                   </div>
@@ -451,18 +531,34 @@ export default function AITrainer() {
               </div>
             )}
 
-            {/* Resources */}
+            {/* Resources & Training Videos */}
             {selectedPlan.resources?.length > 0 && (
               <div className="card p-6">
-                <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2"><BookOpen size={18} /> Resources</h3>
-                <div className="space-y-2">
-                  {selectedPlan.resources.map((r, i) => (
-                    <a key={i} href={typeof r === 'string' ? r : r.url || '#'} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                      <Youtube className="text-red-500" size={18} />
-                      <span className="text-sm text-gray-700">{typeof r === 'string' ? r : r.title || r.url || JSON.stringify(r)}</span>
-                    </a>
-                  ))}
+                <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Youtube size={20} className="text-red-500" /> Training Resources & Videos
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {selectedPlan.resources.map((r, i) => {
+                    const res = typeof r === 'string' ? { title: r, url: r } : r;
+                    const isYoutube = (res.url || '').includes('youtube');
+                    return (
+                      <a key={i} href={res.url || '#'} target="_blank" rel="noopener noreferrer"
+                        className="flex items-start gap-3 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl hover:from-red-50 hover:to-orange-50 transition-all group border border-gray-100 hover:border-red-200">
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${isYoutube ? 'bg-red-100 group-hover:bg-red-200' : 'bg-blue-100 group-hover:bg-blue-200'} transition-colors`}>
+                          {isYoutube ? <Play size={18} className="text-red-600" /> : <BookOpen size={18} className="text-blue-600" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-800 group-hover:text-red-700 transition-colors leading-snug">{res.title || 'Training Resource'}</p>
+                          {res.description && <p className="text-xs text-gray-500 mt-1">{res.description}</p>}
+                          <div className="flex items-center gap-1 mt-1.5">
+                            <ExternalLink size={10} className="text-gray-400" />
+                            <span className="text-[10px] text-gray-400 font-medium">{isYoutube ? 'YouTube' : 'External Link'}</span>
+                            {res.type && <span className="text-[10px] bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded ml-1 capitalize">{res.type}</span>}
+                          </div>
+                        </div>
+                      </a>
+                    );
+                  })}
                 </div>
               </div>
             )}

@@ -85,8 +85,9 @@ Return ONLY valid JSON with this structure:
     ... (at least 6 drills)
   ],
   "resources": [
-    {{ "title": "📹 Video/article title", "url": "real youtube search URL for the topic", "type": "video / article", "icon": "📹" }},
-    ... (at least 4 resources)
+    {{ "title": "📹 Video/article title", "url": "https://www.youtube.com/results?search_query=<relevant+search+terms>", "type": "video", "icon": "📹", "description": "Brief description of what this resource covers" }},
+    {{ "title": "📖 Training article title", "url": "https://www.youtube.com/results?search_query=<relevant+search+terms>", "type": "video", "icon": "📖", "description": "Brief description" }},
+    ... (at least 6 resources with real YouTube search URLs relevant to {sport} {goal} {skill_level})
   ],
   "warmup_cooldown": {{
     "warmup": [
@@ -141,7 +142,11 @@ IMPORTANT:
 - Each day must have the full object structure with theme, total_duration, activities array
 - Include at least 3-4 activities per training day
 - Difficulty ratings use star emojis (⭐ to ⭐⭐⭐⭐⭐)
-- Do NOT use placeholders like "..." or "etc"."""
+- Do NOT use placeholders like "..." or "etc"
+- For resources, generate at least 6 items with real YouTube search URLs (https://www.youtube.com/results?search_query=...) relevant to {sport}, {skill_level}, and {goal}
+- Warmup must have at least 3 exercises, cooldown must have at least 3 exercises
+- Nutrition plan must be detailed with specific food examples
+- Each weekly_goal must have goal, focus, and milestone fields"""
 
     return ask_gemini_json(prompt)
 
