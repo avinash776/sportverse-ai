@@ -15,6 +15,7 @@ const tournamentSchema = new mongoose.Schema({
   max_teams: { type: Number, default: 8 },
   status: { type: String, enum: ['upcoming', 'ongoing', 'completed', 'cancelled'], default: 'upcoming' },
   teams: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 }, {
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
   toJSON: { virtuals: true, transform(doc, ret) { ret.id = ret._id; delete ret.__v; return ret; } },

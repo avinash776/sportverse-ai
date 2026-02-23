@@ -116,6 +116,30 @@ export default function FindPlayers() {
     } catch (err) { toast.error(err.response?.data?.error || 'Failed to join event'); }
   };
 
+  const handleLeaveEvent = async (eventId) => {
+    try {
+      await api.post(`/game-requests/events/${eventId}/leave`);
+      toast.success('Left the event');
+      fetchProEvents();
+    } catch (err) { toast.error(err.response?.data?.error || 'Failed to leave event'); }
+  };
+
+  const handleJoinTournament = async (tournamentId) => {
+    try {
+      await api.post(`/game-requests/tournaments/${tournamentId}/join`);
+      toast.success('Registered for tournament! 🏆');
+      fetchProEvents();
+    } catch (err) { toast.error(err.response?.data?.error || 'Failed to join tournament'); }
+  };
+
+  const handleLeaveTournament = async (tournamentId) => {
+    try {
+      await api.post(`/game-requests/tournaments/${tournamentId}/leave`);
+      toast.success('Left the tournament');
+      fetchProEvents();
+    } catch (err) { toast.error(err.response?.data?.error || 'Failed to leave tournament'); }
+  };
+
   const handleCreate = async () => {
     if (!form.game_name.trim() || !form.location.trim() || !form.date || !form.time) {
       toast.error('Please fill in all required fields');
@@ -488,7 +512,14 @@ export default function FindPlayers() {
                 <Trophy size={20} className="text-amber-500" /> Tournaments
               </h3>
               <div className="space-y-4">
-                {tournaments.map(t => (
+                {tournaments.map(t => {
+                  const alreadyJoinedT = t.participants?.some(p => {
+                    const pId = p._id || p.id || p;
+                    return pId?.toString() === myId?.toString();
+                  });
+                  const participantCount = t.participants?.length || 0;
+
+                  return (
                   <motion.div key={t.id || t._id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
                     className="card p-5 hover:shadow-md transition-all border-l-4 border-amber-400">
                     <div className="flex items-start justify-between gap-3">
@@ -503,6 +534,7 @@ export default function FindPlayers() {
                           <span className="inline-flex items-center gap-1 text-[10px] bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 px-2.5 py-0.5 rounded-full font-bold border border-blue-200">
                             <BadgeCheck size={10} /> Professional Coach
                           </span>
+                          {alreadyJoinedT && <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full font-bold">REGISTERED</span>}
                         </div>
 
                         {/* Info row */}
@@ -530,23 +562,55 @@ export default function FindPlayers() {
                         </div>
                       </div>
 
-                      {/* Teams Info */}
-                      <div className="flex-shrink-0 w-24 text-center">
-                        <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
-                          <Trophy size={24} className="text-amber-600" />
+                      {/* Participants + Join/Leave */}
+                      <div className="flex-shrink-0 w-28 text-center">
+                        <div className="relative w-16 h-16 mx-auto">
+                          <svg className="w-16 h-16 -rotate-90">
+                            <circle cx="32" cy="32" r="28" fill="none" stroke="#e5e7eb" strokeWidth="4" />
+                            <circle cx="32" cy="32" r="28" fill="none" stroke="#f59e0b" strokeWidth="4"
+                              strokeDasharray={`${2 * Math.PI * 28}`} strokeDashoffset={`${2 * Math.PI * 28 * (1 - (participantCount / (t.max_teams * 5 || 40)))}`}
+                              strokeLinecap="round" className="transition-all duration-500" />
+                          </svg>
+                          <div className="absolute inset-0 flex flex-col items-center justify-center">
+                            <span className="text-lg font-bold text-gray-900">{participantCount}</span>
+                            <span className="text-[9px] text-gray-400">joined</span>
+                          </div>
                         </div>
-                        {t.max_teams && (
-                          <p className="text-xs text-gray-500 mt-1 font-medium">
-                            {t.teams?.length || 0} / {t.max_teams} teams
-                          </p>
-                        )}
                         <span className={`inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full font-bold capitalize ${
                           t.status === 'upcoming' ? 'bg-green-100 text-green-700' : t.status === 'ongoing' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
                         }`}>{t.status}</span>
+                        {!alreadyJoinedT ? (
+                          <button onClick={() => handleJoinTournament(t.id || t._id)}
+                            className="mt-2 flex items-center justify-center gap-1 w-full text-xs font-semibold bg-amber-500 text-white py-1.5 px-3 rounded-xl hover:bg-amber-600 transition-colors">
+                            <UserPlus size={12} /> Register
+                          </button>
+                        ) : (
+                          <button onClick={() => handleLeaveTournament(t.id || t._id)}
+                            className="mt-2 flex items-center justify-center gap-1 w-full text-xs font-semibold bg-red-50 text-red-500 py-1.5 px-3 rounded-xl hover:bg-red-100 transition-colors border border-red-200">
+                            <UserMinus size={12} /> Leave
+                          </button>
+                        )}
                       </div>
                     </div>
+
+                    {/* Participants avatars */}
+                    {participantCount > 0 && (
+                      <div className="flex items-center gap-1 mt-3 pt-3 border-t border-gray-100">
+                        <Users size={14} className="text-gray-400 mr-1" />
+                        {t.participants?.slice(0, 6).map((p, i) => {
+                          const pName = p.name || 'User';
+                          return (
+                            <div key={p._id || i} className="w-7 h-7 -ml-1.5 first:ml-0 rounded-full bg-gradient-to-br from-amber-300 to-orange-400 flex items-center justify-center text-white text-[10px] font-bold border-2 border-white" title={pName}>
+                              {p.avatar ? <img src={p.avatar} alt="" className="w-full h-full rounded-full object-cover" /> : pName[0]?.toUpperCase()}
+                            </div>
+                          );
+                        })}
+                        {participantCount > 6 && <span className="text-xs text-gray-400 ml-1">+{participantCount - 6} more</span>}
+                      </div>
+                    )}
                   </motion.div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -630,7 +694,10 @@ export default function FindPlayers() {
                               <UserPlus size={12} /> Join
                             </button>
                           ) : alreadyJoined ? (
-                            <span className="mt-2 inline-block text-[10px] text-green-600 font-bold">✅ Joined</span>
+                            <button onClick={() => handleLeaveEvent(ev.id || ev._id)}
+                              className="mt-2 flex items-center justify-center gap-1 w-full text-xs font-semibold bg-red-50 text-red-500 py-1.5 px-3 rounded-xl hover:bg-red-100 transition-colors border border-red-200">
+                              <UserMinus size={12} /> Leave
+                            </button>
                           ) : null}
                         </div>
                       </div>

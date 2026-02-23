@@ -184,6 +184,7 @@ router.get('/tournaments', async (req, res) => {
 
     const tournaments = await Tournament.find(filter)
       .populate('coach_id', 'name avatar role coach_verified sport')
+      .populate('participants', 'name avatar')
       .sort({ start_date: 1 })
       .lean();
 
@@ -195,6 +196,7 @@ router.get('/tournaments', async (req, res) => {
       coach_avatar: t.coach_id?.avatar,
       coach_verified: t.coach_id?.coach_verified || false,
       is_professional: true,
+      participants_count: t.participants?.length || 0,
     }));
 
     res.json({ tournaments: result });
@@ -256,6 +258,62 @@ router.post('/events/:eventId/join', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Join event error:', error);
     res.status(500).json({ error: 'Failed to join event' });
+  }
+});
+
+// Leave a coach event
+router.post('/events/:eventId/leave', authenticateToken, async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.eventId);
+    if (!event) return res.status(404).json({ error: 'Event not found' });
+
+    const wasJoined = event.participants.some(id => id.toString() === req.user._id.toString());
+    if (!wasJoined) return res.status(400).json({ error: 'You are not registered for this event' });
+
+    event.participants = event.participants.filter(id => id.toString() !== req.user._id.toString());
+    await event.save();
+    res.json({ message: 'Left event successfully' });
+  } catch (error) {
+    console.error('Leave event error:', error);
+    res.status(500).json({ error: 'Failed to leave event' });
+  }
+});
+
+// Join a tournament
+router.post('/tournaments/:tournamentId/join', authenticateToken, async (req, res) => {
+  try {
+    const tournament = await Tournament.findById(req.params.tournamentId);
+    if (!tournament) return res.status(404).json({ error: 'Tournament not found' });
+
+    if (tournament.participants && tournament.participants.some(id => id.toString() === req.user._id.toString())) {
+      return res.status(409).json({ error: 'Already registered for this tournament' });
+    }
+
+    if (!tournament.participants) tournament.participants = [];
+    tournament.participants.push(req.user._id);
+    await tournament.save();
+    res.json({ message: 'Registered for tournament successfully!' });
+  } catch (error) {
+    console.error('Join tournament error:', error);
+    res.status(500).json({ error: 'Failed to join tournament' });
+  }
+});
+
+// Leave a tournament
+router.post('/tournaments/:tournamentId/leave', authenticateToken, async (req, res) => {
+  try {
+    const tournament = await Tournament.findById(req.params.tournamentId);
+    if (!tournament) return res.status(404).json({ error: 'Tournament not found' });
+
+    const wasJoined = tournament.participants?.some(id => id.toString() === req.user._id.toString());
+    if (!wasJoined) return res.status(400).json({ error: 'You are not registered for this tournament' });
+
+    tournament.participants = tournament.participants.filter(id => id.toString() !== req.user._id.toString());
+    await tournament.save();
+    res.json({ message: 'Left tournament successfully' });
+  } catch (error) {
+    console.error('Leave tournament error:', error);
+    res.status(500).json({ error: 'Failed to leave tournament' });
   }
 });
 
