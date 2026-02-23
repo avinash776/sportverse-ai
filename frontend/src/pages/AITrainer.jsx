@@ -7,11 +7,12 @@ import { AnimatePresence, motion } from 'framer-motion';
 import {
     Award, BookOpen, Brain, Calendar,
     ChevronDown, ChevronUp,
-    Dumbbell,
-    Flame,
+    Dumbbell, ExternalLink, Flame,
+    Heart,
     Loader2,
+    Play,
     Target, Trash2, TrendingUp, Trophy,
-    Youtube
+    Youtube, Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';

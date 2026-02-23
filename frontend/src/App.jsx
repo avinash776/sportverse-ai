@@ -104,7 +104,7 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
       <Route path="/coach-portal" element={
-        <ProtectedRoute requireCoach>
+        <ProtectedRoute>
           <AppLayout><CoachPortal /></AppLayout>
         </ProtectedRoute>
       } />

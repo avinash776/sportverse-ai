@@ -63,9 +63,15 @@ export default function Navbar() {
               <div className="px-4 py-2 border-b border-gray-100">
                 <p className="text-sm font-semibold text-gray-800">{user?.name}</p>
                 <p className="text-xs text-gray-500">{user?.email}</p>
-                <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded-full bg-primary-100 text-primary-700 capitalize">
-                  {user?.role}
-                </span>
+                {(user?.role === 'coach' || user?.role === 'admin') ? (
+                  <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 text-xs font-bold rounded-full bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 border border-amber-200">
+                    🛡️ Coach
+                  </span>
+                ) : (
+                  <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded-full bg-primary-100 text-primary-700 capitalize">
+                    {user?.role || 'Player'}
+                  </span>
+                )}
               </div>
               <a href="/profile" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                 <User size={16} /> My Profile

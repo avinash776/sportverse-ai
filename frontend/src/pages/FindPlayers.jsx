@@ -5,6 +5,8 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+    Award,
+    BadgeCheck,
     Calendar,
     Clock,
     Filter,
@@ -12,6 +14,8 @@ import {
     MapPin,
     Plus,
     Search,
+    Shield,
+    Star,
     Trophy,
     UserMinus,
     UserPlus,

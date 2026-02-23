@@ -68,30 +68,29 @@ export default function Sidebar() {
           </NavLink>
         ))}
 
-        {/* Coach-only section */}
-        {isCoach && (
-          <>
-            <div className="pt-4 mt-4 border-t border-gray-100">
-              <p className="px-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Coach Tools</p>
-            </div>
-            {coachItems.map(({ path, label, icon: Icon }) => (
-              <NavLink
-                key={path}
-                to={path}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
-                    isActive
-                      ? 'bg-gradient-to-r from-orange-50 to-orange-100/50 text-sport-orange shadow-sm border border-orange-100'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`
-                }
-              >
-                <Icon size={18} className="group-hover:scale-110 transition-transform" />
-                <span>{label}</span>
-              </NavLink>
-            ))}
-          </>
-        )}
+        {/* Coach section - visible to all */}
+        <div className="pt-4 mt-4 border-t border-gray-100">
+          <p className="px-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Coach Tools</p>
+        </div>
+        {coachItems.map(({ path, label, icon: Icon }) => (
+          <NavLink
+            key={path}
+            to={path}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
+                isActive
+                  ? 'bg-gradient-to-r from-orange-50 to-orange-100/50 text-sport-orange shadow-sm border border-orange-100'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`
+            }
+          >
+            <Icon size={18} className="group-hover:scale-110 transition-transform" />
+            <span>{label}</span>
+            {(user?.role === 'coach' || user?.role === 'admin') && (
+              <span className="ml-auto text-[9px] bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded font-bold">COACH</span>
+            )}
+          </NavLink>
+        ))}
       </nav>
 
       {/* User Card Footer */}
@@ -106,7 +105,13 @@ export default function Sidebar() {
           </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-gray-800 truncate">{user?.name || 'User'}</p>
-            <p className="text-[11px] text-gray-400 capitalize">{user?.role || 'Player'}</p>
+            {(user?.role === 'coach' || user?.role === 'admin') ? (
+              <span className="inline-flex items-center gap-1 text-[10px] bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 px-2 py-0.5 rounded-full font-bold border border-amber-200">
+                <Shield size={10} /> Coach
+              </span>
+            ) : (
+              <p className="text-[11px] text-gray-400 capitalize">{user?.role || 'Player'}</p>
+            )}
           </div>
         </div>
       </div>
