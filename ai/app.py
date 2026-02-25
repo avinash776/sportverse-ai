@@ -14,6 +14,15 @@ load_dotenv()  # Load .env file before anything else
 from flask import Flask, jsonify
 from flask_cors import CORS
 
+# MediaPipe startup check
+try:
+    import mediapipe as mp
+    MEDIAPIPE_AVAILABLE = True
+    print('\u2705 MediaPipe imported successfully')
+except Exception as e:
+    MEDIAPIPE_AVAILABLE = False
+    print(f'\u274c MediaPipe import failed: {e}')
+
 # Import route blueprints
 from routes.video_routes import video_bp
 from routes.training_routes import training_bp
@@ -24,7 +33,13 @@ def create_app():
     app = Flask(__name__)
 
     # Enable CORS for frontend/backend communication
-    CORS(app, origins=["http://localhost:5173", "http://localhost:5000"])
+    CORS(app, origins=[
+        "http://localhost:5173",
+        "http://localhost:5000",
+        "https://sportverseai.app",
+        "https://www.sportverseai.app",
+        "https://sportverse-ai-backend.onrender.com",
+    ])
 
     # Configuration
     app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max upload
@@ -42,8 +57,7 @@ def create_app():
         gemini_key = os.environ.get('GEMINI_API_KEY', '')
         return jsonify({
             'status': 'ok',
-            'service': 'SportVerse AI – Python Microservice',
-            'gemini_configured': bool(gemini_key),
+            'service': 'SportVerse AI – Python Microservice',            'mediapipe_available': MEDIAPIPE_AVAILABLE,            'gemini_configured': bool(gemini_key),
             'capabilities': [
                 'real_pose_estimation_mediapipe',
                 'gemini_coaching_feedback',
